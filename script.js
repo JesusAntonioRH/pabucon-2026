@@ -9,7 +9,7 @@
 // Mientras tanto, el modo demo simula el registro localmente.
 // ──────────────────────────────────────────────────────────────
 const CONFIG = {
-  API_BASE_URL:  'https://YOUR_API_GATEWAY_URL.execute-api.us-east-1.amazonaws.com/prod',
+  API_BASE_URL:  'https://a1pxf50eh7.execute-api.us-east-1.amazonaws.com',
   MAX_CAPACITY:  15,
   STORAGE_KEY:   'pabucon2026_registered',
   EVENT_DATE:    new Date('2026-09-23T16:00:00-06:00'), // 4 PM CST
