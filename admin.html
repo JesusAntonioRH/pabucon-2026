@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PABUCON 2026 — Admin Panel</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cinzel:wght@400;600;700&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+  <style>
+    /* ── Base ── */
+    :root {
+      --bg: #000;
+      --purple: #c850c0;
+      --purple-dark: #7b2fbe;
+      --blue: #4158d0;
+      --white: #ffffff;
+      --silver: #c0c0c0;
+      --border: rgba(255,255,255,0.08);
+      --border-accent: rgba(200,80,192,0.35);
+      --surface: rgba(255,255,255,0.03);
+    }
+
+    *, *::before, *::after { margin:0; padding:0; box-sizing:border-box; }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Exo 2', sans-serif;
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-track { background: #000; }
+    ::-webkit-scrollbar-thumb { background: var(--purple-dark); }
+
+    /* ── Login Screen ── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 30px;
+      background: radial-gradient(ellipse 80% 60% at 50% 50%, rgba(123,47,190,0.1) 0%, transparent 70%);
+    }
+
+    .login-heart {
+      font-size: 60px;
+      color: var(--purple);
+      filter: drop-shadow(0 0 25px rgba(200,80,192,0.6));
+      animation: hb 1.5s ease-in-out infinite;
+      margin-bottom: 20px;
+    }
+
+    .login-title {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: clamp(18px, 4vw, 26px);
+      letter-spacing: 0.3em;
+      background: linear-gradient(180deg, #fff 0%, #c0c0c0 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
+
+    .login-sub {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.4em;
+      color: var(--purple);
+      margin-bottom: 48px;
+      opacity: 0.75;
+    }
+
+    .login-box {
+      background: var(--surface);
+      border: 1px solid var(--border-accent);
+      padding: 44px 40px;
+      width: 100%;
+      max-width: 420px;
+      position: relative;
+    }
+
+    .login-box::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 10%; right: 10%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--purple), transparent);
+    }
+
+    .login-label {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.35em;
+      color: var(--purple);
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .login-input {
+      width: 100%;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-bottom: 2px solid var(--purple);
+      color: var(--white);
+      padding: 14px 18px;
+      font-family: 'Exo 2', sans-serif;
+      font-size: 16px;
+      outline: none;
+      margin-bottom: 24px;
+      letter-spacing: 0.15em;
+    }
+
+    .login-input:focus { background: rgba(200,80,192,0.05); }
+    .login-input::placeholder { color: rgba(255,255,255,0.2); letter-spacing: normal; }
+
+    .login-btn {
+      width: 100%;
+      background: transparent;
+      border: 2px solid var(--purple);
+      color: var(--white);
+      padding: 15px 24px;
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      letter-spacing: 0.35em;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .login-btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(200,80,192,0.8), rgba(65,88,208,0.8));
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .login-btn:hover::before { opacity: 1; }
+    .login-btn:hover {
+      box-shadow: 0 0 30px rgba(200,80,192,0.35);
+      transform: translateY(-2px);
+    }
+
+    .login-btn span { position: relative; z-index: 1; }
+
+    .login-error {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      letter-spacing: 0.2em;
+      color: #ff8888;
+      text-align: center;
+      margin-top: 16px;
+      min-height: 20px;
+    }
+
+    /* ── Dashboard ── */
+    #dashboard {
+      min-height: 100vh;
+      padding: 40px 24px;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+
+    #dashboard.hidden { display: none; }
+
+    .dash-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .dash-title {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: clamp(16px, 3vw, 22px);
+      background: linear-gradient(180deg, #fff 0%, #c0c0c0 100%);
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 0.2em;
+    }
+
+    .dash-logout {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.3em;
+      color: rgba(255,255,255,0.35);
+      background: none;
+      border: 1px solid rgba(255,255,255,0.15);
+      padding: 8px 18px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .dash-logout:hover { border-color: var(--border-accent); color: var(--purple); }
+
+    /* Stats */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 18px;
+      margin-bottom: 40px;
+    }
+
+    .stat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 28px 24px;
+      text-align: center;
+      position: relative;
+    }
+
+    .stat-card.highlight {
+      border-color: var(--border-accent);
+      background: rgba(200,80,192,0.05);
+    }
+
+    .stat-num {
+      font-family: 'Cinzel Decorative', cursive;
+      font-size: 48px;
+      font-weight: 700;
+      background: linear-gradient(180deg, var(--purple), #fff, var(--purple));
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+      filter: drop-shadow(0 0 14px rgba(200,80,192,0.45));
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-label {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: 0.38em;
+      color: var(--purple);
+      opacity: 0.75;
+    }
+
+    /* Table */
+    .table-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .table-title {
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      letter-spacing: 0.35em;
+      color: var(--silver);
+    }
+
+    .refresh-btn {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      color: var(--purple);
+      background: none;
+      border: 1px solid var(--border-accent);
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .refresh-btn:hover { background: rgba(200,80,192,0.07); }
+
+    .export-btn {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: 0.3em;
+      color: var(--silver);
+      background: none;
+      border: 1px solid var(--border);
+      padding: 7px 16px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .export-btn:hover { border-color: var(--border-accent); color: var(--purple); }
+
+    .table-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead {
+      background: rgba(200,80,192,0.06);
+      border-bottom: 1px solid var(--border-accent);
+    }
+
+    th {
+      font-family: 'Cinzel', serif;
+      font-size: 9px;
+      letter-spacing: 0.38em;
+      color: var(--purple);
+      padding: 16px 20px;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    td {
+      padding: 14px 20px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      font-size: 14px;
+      color: rgba(255,255,255,0.75);
+      vertical-align: middle;
+    }
+
+    tr:last-child td { border-bottom: none; }
+
+    tr:hover td { background: rgba(200,80,192,0.04); }
+
+    .row-num {
+      font-family: 'Cinzel', serif;
+      font-size: 11px;
+      color: var(--purple);
+      opacity: 0.6;
+      width: 50px;
+    }
+
+    .row-nick {
+      font-weight: 600;
+      color: var(--white);
+    }
+
+    .row-date {
+      font-size: 12px;
+      opacity: 0.5;
+    }
+
+    .row-heart { color: var(--purple); }
+
+    .table-empty {
+      text-align: center;
+      padding: 48px !important;
+      color: rgba(255,255,255,0.3) !important;
+      font-family: 'Cinzel', serif;
+      font-size: 12px;
+      letter-spacing: 0.25em;
+    }
+
+    .table-loading {
+      text-align: center;
+      padding: 48px !important;
+      color: var(--purple) !important;
+      font-size: 20px;
+      animation: hb 1.2s ease-in-out infinite;
+    }
+
+    /* Cap bar in dash */
+    .dash-bar-wrap {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 24px 28px;
+      margin-bottom: 28px;
+    }
+
+    .dash-bar-label {
+      font-family: 'Cinzel', serif;
+      font-size: 10px;
+      letter-spacing: 0.35em;
+      color: var(--silver);
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .dash-bar-track {
+      height: 6px;
+      background: rgba(255,255,255,0.07);
+      border-radius: 3px;
+      overflow: visible;
+      position: relative;
+    }
+
+    .dash-bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      border-radius: 3px;
+      transition: width 0.8s ease;
+      position: relative;
+    }
+
+    .dash-bar-glow {
+      position: absolute;
+      top: -5px; left: 0;
+      height: 16px;
+      background: linear-gradient(90deg, var(--blue), var(--purple));
+      border-radius: 8px;
+      filter: blur(7px);
+      opacity: 0.4;
+      transition: width 0.8s ease;
+    }
+
+    @keyframes hb { 0%,100%{transform:scale(1)} 50%{transform:scale(1.15)} }
+  </style>
+</head>
+<body>
+
+  <!-- LOGIN -->
+  <div id="login-screen">
+    <div class="login-heart">♥</div>
+    <h1 class="login-title">PABUCON 2026</h1>
+    <p class="login-sub">PANEL DE ADMINISTRADOR</p>
+
+    <div class="login-box">
+      <label for="admin-pwd" class="login-label">♥ CONTRASEÑA</label>
+      <input
+        type="password"
+        id="admin-pwd"
+        class="login-input"
+        placeholder="••••••••••"
+        aria-label="Contraseña de administrador"
+        autocomplete="current-password"
+      >
+      <button id="login-btn" class="login-btn" aria-label="Iniciar sesión">
+        <span>ENTRAR AL PANEL</span>
+      </button>
+      <div id="login-error" class="login-error" aria-live="assertive"></div>
+    </div>
+  </div>
+
+  <!-- DASHBOARD -->
+  <div id="dashboard" class="hidden">
+    <div class="dash-header">
+      <h2 class="dash-title">♥ PABUCON 2026 — ADMIN</h2>
+      <div style="display:flex;gap:10px;">
+        <button class="export-btn" id="export-btn">⬇ EXPORTAR CSV</button>
+        <button class="dash-logout" id="logout-btn">SALIR</button>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="stats-grid">
+      <div class="stat-card highlight">
+        <div class="stat-num" id="stat-total">—</div>
+        <div class="stat-label">REGISTRADOS</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" id="stat-left">—</div>
+        <div class="stat-label">CUPOS LIBRES</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">15</div>
+        <div class="stat-label">CAPACIDAD TOTAL</div>
+      </div>
+    </div>
+
+    <!-- Progress bar -->
+    <div class="dash-bar-wrap">
+      <div class="dash-bar-label">
+        <span>OCUPACIÓN</span>
+        <span id="bar-pct">0%</span>
+      </div>
+      <div class="dash-bar-track">
+        <div class="dash-bar-fill" id="dash-bar-fill" style="width:0%"></div>
+        <div class="dash-bar-glow" id="dash-bar-glow" style="width:0%"></div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-header">
+      <span class="table-title">♛ LISTA DE ASISTENTES</span>
+      <button class="refresh-btn" id="refresh-btn">↺ ACTUALIZAR</button>
+    </div>
+
+    <div class="table-wrap">
+      <table aria-label="Lista de asistentes registrados">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>NICKNAME</th>
+            <th>FECHA DE REGISTRO</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="reg-tbody">
+          <tr>
+            <td colspan="4" class="table-loading">♥</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <script>
+    // ── Config ──
+    const ADMIN_API = 'https://YOUR_API_GATEWAY_URL.execute-api.us-east-1.amazonaws.com/prod';
+    const MAX_CAP   = 15;
+    const SESS_KEY  = 'pabucon2026_admin_token';
+
+    let currentToken = null;
+    let registrations = [];
+
+    function isConfigured() {
+      return !ADMIN_API.includes('YOUR_API_GATEWAY_URL');
+    }
+
+    // ── Login ──
+    document.getElementById('login-btn').addEventListener('click', handleLogin);
+    document.getElementById('admin-pwd').addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
+
+    async function handleLogin() {
+      const pwd   = document.getElementById('admin-pwd').value;
+      const errEl = document.getElementById('login-error');
+      errEl.textContent = '';
+
+      if (!pwd) { errEl.textContent = '❌ Ingresa la contraseña'; return; }
+
+      if (!isConfigured()) {
+        // Demo: accept "pabucon2026" as password
+        if (pwd === 'pabucon2026') {
+          currentToken = 'demo';
+          showDashboard();
+          loadDemoData();
+        } else {
+          errEl.textContent = '❌ Contraseña incorrecta (demo: pabucon2026)';
+        }
+        return;
+      }
+
+      // Real API
+      try {
+        const res = await fetch(`${ADMIN_API}/registrations`, {
+          headers: { 'Authorization': `Bearer ${pwd}` }
+        });
+
+        if (res.status === 401) { errEl.textContent = '❌ Contraseña incorrecta'; return; }
+        if (!res.ok) { errEl.textContent = `❌ Error ${res.status}`; return; }
+
+        currentToken = pwd;
+        sessionStorage.setItem(SESS_KEY, pwd);
+        const data = await res.json();
+        showDashboard();
+        renderData(data);
+      } catch {
+        errEl.textContent = '❌ Error de conexión con la API.';
+      }
+    }
+
+    function showDashboard() {
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('dashboard').classList.remove('hidden');
+    }
+
+    // ── Logout ──
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      sessionStorage.removeItem(SESS_KEY);
+      currentToken = null;
+      location.reload();
+    });
+
+    // ── Refresh ──
+    document.getElementById('refresh-btn').addEventListener('click', loadRegistrations);
+
+    async function loadRegistrations() {
+      if (!isConfigured()) { loadDemoData(); return; }
+
+      try {
+        const res = await fetch(`${ADMIN_API}/registrations`, {
+          headers: { 'Authorization': `Bearer ${currentToken}` }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        renderData(data);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderData({ registrations: list = [], total = 0, spotsLeft = MAX_CAP }) {
+      registrations = list;
+      const taken = total;
+      const left  = spotsLeft;
+      const pct   = Math.round((taken / MAX_CAP) * 100);
+
+      document.getElementById('stat-total').textContent = taken;
+      document.getElementById('stat-left').textContent  = left;
+      document.getElementById('bar-pct').textContent    = pct + '%';
+      document.getElementById('dash-bar-fill').style.width = pct + '%';
+      document.getElementById('dash-bar-glow').style.width = pct + '%';
+
+      const tbody = document.getElementById('reg-tbody');
+
+      if (!list.length) {
+        tbody.innerHTML = `<tr><td colspan="4" class="table-empty">♥ Sin registros aún</td></tr>`;
+        return;
+      }
+
+      tbody.innerHTML = list.map((r, i) => `
+        <tr>
+          <td class="row-num">${String(i + 1).padStart(2, '0')}</td>
+          <td class="row-nick">${escapeHtml(r.nickname)}</td>
+          <td class="row-date">${formatDate(r.registeredAt)}</td>
+          <td class="row-heart">♥</td>
+        </tr>
+      `).join('');
+    }
+
+    function loadDemoData() {
+      renderData({
+        registrations: [
+          { nickname: 'GuerreroDark123',   registeredAt: '2026-09-08T18:32:00Z' },
+          { nickname: 'KHFan_Xion',        registeredAt: '2026-09-09T09:14:00Z' },
+          { nickname: 'SoraCommunity',     registeredAt: '2026-09-09T21:00:00Z' },
+          { nickname: 'NocheDeReyes',      registeredAt: '2026-09-10T14:55:00Z' },
+          { nickname: 'VoidGear_Aqua',     registeredAt: '2026-09-10T22:10:00Z' },
+        ],
+        total: 5,
+        spotsLeft: 10,
+      });
+    }
+
+    // ── Export CSV ──
+    document.getElementById('export-btn').addEventListener('click', exportCSV);
+
+    function exportCSV() {
+      if (!registrations.length) return;
+      const rows = [['#', 'Nickname', 'Fecha de Registro']];
+      registrations.forEach((r, i) => {
+        rows.push([i + 1, r.nickname, formatDate(r.registeredAt)]);
+      });
+      const csv  = rows.map(r => r.map(c => `"${c}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url  = URL.createObjectURL(blob);
+      const a    = document.createElement('a');
+      a.href     = url;
+      a.download = 'pabucon2026_asistentes.csv';
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // ── Helpers ──
+    function escapeHtml(str) {
+      return str
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;');
+    }
+
+    function formatDate(iso) {
+      if (!iso) return '—';
+      try {
+        return new Date(iso).toLocaleString('es-MX', {
+          day: '2-digit', month: 'short', year: 'numeric',
+          hour: '2-digit', minute: '2-digit'
+        });
+      } catch { return iso; }
+    }
+
+    // ── Check session on load ──
+    (function init() {
+      const saved = sessionStorage.getItem(SESS_KEY);
+      if (saved) {
+        currentToken = saved;
+        showDashboard();
+        loadRegistrations();
+      }
+    })();
+  </script>
+</body>
+</html>
