@@ -5,8 +5,6 @@
 
 // ──────────────────────────────────────────────────────────────
 // 🔧 CONFIGURACIÓN
-// Reemplaza API_BASE_URL con tu URL de API Gateway tras configurar AWS.
-// Mientras tanto, el modo demo simula el registro localmente.
 // ──────────────────────────────────────────────────────────────
 const CONFIG = {
   API_BASE_URL:  'https://a1pxf50eh7.execute-api.us-east-1.amazonaws.com',
@@ -40,15 +38,14 @@ class Particle {
     this.wob   = Math.random() * Math.PI * 2;
     this.wobS  = Math.random() * 0.018 + 0.006;
 
-    // Types: 0=heart, 1=star4, 2=tiny heart
     this.type  = Math.floor(Math.random() * 3);
 
     const palettes = [
-      [200, 80, 192],  // pink-purple
-      [123, 47, 190],  // purple
-      [65,  88, 208],  // blue
-      [255, 255, 255], // white
-      [180, 60, 220],  // violet
+      [200, 80, 192],
+      [123, 47, 190],
+      [65,  88, 208],
+      [255, 255, 255],
+      [180, 60, 220],
     ];
     this.rgb = palettes[Math.floor(Math.random() * palettes.length)];
   }
@@ -173,7 +170,6 @@ async function getFingerprint() {
     const result = await fp.get();
     return result.visitorId;
   } catch {
-    // Fallback: basic browser fingerprint
     const data = [
       navigator.userAgent,
       navigator.language,
@@ -206,11 +202,11 @@ async function apiFetchCount() {
   return res.json();
 }
 
-async function apiRegister(nickname, deviceId) {
+async function apiRegister(nickname, email, deviceId) {
   const res = await fetch(`${CONFIG.API_BASE_URL}/register`, {
     method:  'POST',
     headers: { 'Content-Type': 'application/json' },
-    body:    JSON.stringify({ nickname, deviceId }),
+    body:    JSON.stringify({ nickname, email, deviceId }),
   });
   const data = await res.json();
   return { status: res.status, data };
@@ -227,7 +223,6 @@ function setCapacity(taken, max = CONFIG.MAX_CAPACITY) {
   const barWrap = document.getElementById('capacity-bar-wrap');
   if (!takenEl) return;
 
-  // Animate counter
   const current = parseInt(takenEl.textContent) || 0;
   const steps   = 20;
   const diff    = taken - current;
@@ -293,14 +288,14 @@ function setSubmitLoading(loading) {
 // ──────────────────────────────────────────────────────────────
 let _demoCount = 0;
 
-async function demoRegister(nickname) {
-  await new Promise(r => setTimeout(r, 1400)); // simulate network
+async function demoRegister(nickname, email) {
+  await new Promise(r => setTimeout(r, 1400)); 
 
   _demoCount++;
-  const stored = { nickname, deviceId: 'demo', demo: true };
+  const stored = { nickname, email, deviceId: 'demo', demo: true };
   localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(stored));
 
-  showMessage('success', `♥ ¡${nickname} registrado! (Modo Demo) — Nos vemos el 23 de Sept ♥`);
+  showMessage('success', `♥ ¡${nickname} registrado! Te enviamos un correo. (Modo Demo) ♥`);
   setCapacity(_demoCount);
 
   setTimeout(() => showAlreadyRegistered(nickname), 2800);
@@ -313,13 +308,23 @@ async function handleSubmit(e) {
   e.preventDefault();
 
   const nicknameInput = document.getElementById('nickname');
+  const emailInput = document.getElementById('email');
+  
   const nickname      = nicknameInput?.value.trim();
-  if (!nickname) {
-    showMessage('error', '❌ Escribe tu nickname antes de continuar.');
+  const email         = emailInput?.value.trim();
+
+  if (!nickname || !email) {
+    showMessage('error', '❌ Escribe tu nickname y correo antes de continuar.');
     return;
   }
 
-  // LocalStorage check first (instant response)
+  // Regex simple para email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email)) {
+    showMessage('error', '❌ Por favor ingresa un correo válido.');
+    return;
+  }
+
   const stored = localStorage.getItem(CONFIG.STORAGE_KEY);
   if (stored) {
     const data = JSON.parse(stored);
@@ -332,18 +337,16 @@ async function handleSubmit(e) {
   try {
     const deviceId = await getFingerprint();
 
-    // ── DEMO MODE ──
     if (!isApiConfigured()) {
-      await demoRegister(nickname);
+      await demoRegister(nickname, email);
       return;
     }
 
-    // ── REAL API ──
-    const { status, data } = await apiRegister(nickname, deviceId);
+    const { status, data } = await apiRegister(nickname, email, deviceId);
 
     if (status === 200) {
-      localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify({ nickname, deviceId }));
-      showMessage('success', `♥ ¡${nickname} registrado! Nos vemos el 23 de Sept ♥`);
+      localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify({ nickname, email, deviceId }));
+      showMessage('success', `♥ ¡${nickname} registrado! Revisa tu correo. Nos vemos el 23 de Sept ♥`);
 
       if (data.spotsLeft !== undefined) {
         setCapacity(CONFIG.MAX_CAPACITY - data.spotsLeft);
@@ -352,7 +355,6 @@ async function handleSubmit(e) {
       setTimeout(() => showAlreadyRegistered(nickname), 2800);
 
     } else if (status === 409) {
-      // Device already registered — store locally so we stop checking
       localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify({ nickname: 'Guerrero', deviceId }));
       showMessage('warning', '♛ Este dispositivo ya tiene un registro en Pabucon 2026.');
 
@@ -391,15 +393,10 @@ async function loadCapacity() {
 // INIT
 // ──────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', () => {
-
-  // 1. Particles
   new ParticleSystem();
-
-  // 2. Countdown
   updateCountdown();
   setInterval(updateCountdown, 1000);
 
-  // 3. Check if already registered
   const storedRaw = localStorage.getItem(CONFIG.STORAGE_KEY);
   if (storedRaw) {
     try {
@@ -410,14 +407,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
-  // 4. Capacity
   loadCapacity();
 
-  // 5. Form
   const form = document.getElementById('registration-form');
   if (form) form.addEventListener('submit', handleSubmit);
 
-  // 6. Loading screen dismiss on animation end
   const loading = document.getElementById('loading-screen');
   if (loading) {
     loading.addEventListener('animationend', () => {
@@ -425,7 +419,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // 7. Smooth hero CTA scroll
   document.querySelectorAll('a[href^="#"]').forEach(link => {
     link.addEventListener('click', e => {
       const target = document.querySelector(link.getAttribute('href'));
@@ -436,7 +429,6 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   });
 
-  // 8. Intersection observer for section animations
   const observer = new IntersectionObserver(
     entries => entries.forEach(({ target, isIntersecting }) => {
       if (isIntersecting) {
