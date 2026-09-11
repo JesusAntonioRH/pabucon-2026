@@ -209,6 +209,7 @@
 
         <!-- Registration form -->
         <form id="registration-form" class="reg-form" novalidate>
+          
           <div class="form-group">
             <label for="nickname" class="form-label">
               <span aria-hidden="true">♥</span> TU NICKNAME
@@ -227,22 +228,27 @@
               >
               <div class="input-line" aria-hidden="true"></div>
             </div>
-            <div class="form-group">
-  <label for="email" class="form-label">
-    <span aria-hidden="true">♥</span> TU CORREO
-  </label>
-  <div class="input-wrap">
-    <input
-      type="email"
-      id="email"
-      name="email"
-      class="form-input"
-      placeholder="Para enviarte tu confirmación"
-      required
-    >
-    <div class="input-line" aria-hidden="true"></div>
-  </div>
-</div>
+          </div>
+
+          <!-- NUEVO CAMPO DE CORREO -->
+          <div class="form-group">
+            <label for="email" class="form-label">
+              <span aria-hidden="true">♥</span> TU CORREO
+            </label>
+            <div class="input-wrap">
+              <input
+                type="email"
+                id="email"
+                name="email"
+                class="form-input"
+                placeholder="Para enviarte tu confirmación"
+                maxlength="100"
+                autocomplete="email"
+                required
+                aria-required="true"
+              >
+              <div class="input-line" aria-hidden="true"></div>
+            </div>
           </div>
 
           <button type="submit" id="submit-btn" class="submit-btn">
