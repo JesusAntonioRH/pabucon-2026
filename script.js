@@ -8,7 +8,7 @@
 // ──────────────────────────────────────────────────────────────
 const CONFIG = {
   API_BASE_URL:  'https://a1pxf50eh7.execute-api.us-east-1.amazonaws.com',
-  MAX_CAPACITY:  15,
+  MAX_CAPACITY:  20,
   STORAGE_KEY:   'pabucon2026_registered',
   EVENT_DATE:    new Date('2026-09-23T16:00:00-06:00'), // 4 PM CST
 };
@@ -295,7 +295,7 @@ async function demoRegister(nickname, email) {
   const stored = { nickname, email, deviceId: 'demo', demo: true };
   localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(stored));
 
-  showMessage('success', `♥ ¡${nickname} registrado! Te enviamos un correo. (Modo Demo) ♥`);
+  showMessage('success', `♥ ¡${nickname} registrado! Te enviamos un correo. ♥`);
   setCapacity(_demoCount);
 
   setTimeout(() => showAlreadyRegistered(nickname), 2800);
